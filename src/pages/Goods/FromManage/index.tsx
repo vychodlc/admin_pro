@@ -1,20 +1,23 @@
-import { addRule, removeRule, rule, updateRule } from '@/services/ant-design-pro/api';
-import { addGoodsFrom, getGoodsFrom } from '@/services/ant-design-pro/goods-from';
-import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps, ProFormInstance } from '@ant-design/pro-components';
+import { removeRule } from '@/services/ant-design-pro/api';
 import {
-  FooterToolbar,
+  addGoodsFrom,
+  getGoodsFrom,
+  updateGoodsFrom,
+  removeGoodsFrom,
+} from '@/services/ant-design-pro/goods-from';
+import { PlusOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import {
   ModalForm,
   PageContainer,
   ProDescriptions,
   ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, Input, message } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
-import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
+import { Button, Drawer, Popconfirm, message } from 'antd';
+import React, { useRef, useState } from 'react';
+// import type { FormValueType } from './components/UpdateForm';
+// import UpdateForm from './components/UpdateForm';
 
 /**
  * @en-US Add node
@@ -39,18 +42,14 @@ const handleAdd = async (fields: API.GoodsFromListItem) => {
  * @en-US Update node
  * @zh-CN 更新节点
  *
+ * @param id
  * @param fields
  */
-const handleUpdate = async (fields: FormValueType) => {
+const handleUpdate = async (id: number, fields: Partial<API.GoodsFromListItem>) => {
   const hide = message.loading('正在配置');
   try {
-    await updateRule({
-      name: fields.name,
-      desc: fields.desc,
-      key: fields.key,
-    });
+    await updateGoodsFrom({ ...fields, id });
     hide();
-
     message.success('修改成功');
     return true;
   } catch (error) {
@@ -61,24 +60,21 @@ const handleUpdate = async (fields: FormValueType) => {
 };
 
 /**
- *  Delete node
+ * @en-US Delete node
  * @zh-CN 删除节点
  *
- * @param selectedRows
+ * @param id
  */
-const handleRemove = async (selectedRows: API.GoodsFromListItem[]) => {
+const handleRemove = async (id: number) => {
   const hide = message.loading('正在删除');
-  if (!selectedRows) return true;
   try {
-    await removeRule({
-      key: selectedRows.map((row) => row.key),
-    });
+    await removeGoodsFrom({ id });
     hide();
-    message.success('Deleted successfully and will refresh soon');
+    message.success('删除成功');
     return true;
   } catch (error) {
     hide();
-    message.error('Delete failed, please try again');
+    message.error('删除失败，请重新尝试！');
     return false;
   }
 };
@@ -99,39 +95,7 @@ const TableList: React.FC = () => {
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.GoodsFromListItem>();
-
   const [current, setCurrent] = useState<number>(1);
-
-  // 获取当前页数
-  useEffect(() => {
-    // console.log('current:', actionRef.current?.pageRef.current);
-  }, [])
-
-  // 监听键盘左右按键，切换表格数据
-  // useEffect(() => {
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     if (e.key === 'ArrowLeft') {
-  //       if (currentRow) {
-  //         const index = data.findIndex((item) => item.id === currentRow.id);
-  //         if (index > 0) {
-  //           setCurrentRow(data[index - 1]);
-  //         }
-  //       }
-  //     } else if (e.key === 'ArrowRight') {
-  //       if (currentRow) {
-  //         const index = data.findIndex((item) => item.id === currentRow.id);
-  //         if (index < data.length - 1) {
-  //           setCurrentRow(data[index + 1]);
-  //         }
-  //       }
-  //     }
-  //   };
-  //   document.addEventListener('keydown', handleKeyDown);
-  //   return () => {
-  //     document.removeEventListener('keydown', handleKeyDown);
-  //   };
-  // })
-
 
   const columns: ProColumns<API.GoodsFromListItem>[] = [
     {
@@ -168,31 +132,54 @@ const TableList: React.FC = () => {
         <a
           key="config"
           onClick={() => {
-            handleUpdateModalOpen(true);
             setCurrentRow(record);
+            handleUpdateModalOpen(true);
           }}
         >
           修改
         </a>,
+        <Popconfirm
+          key="deletePop"
+          title="Delete the task"
+          description="Are you sure to delete this task?"
+          onConfirm={async () => {
+            await handleRemove(record.id);
+            actionRef.current?.reloadAndRest?.();
+          }}
+          onCancel={() => {
+            console.log('cancel');
+          }}
+          okText="Yes"
+          cancelText="No"
+        >
+          {/* <Button danger>Delete</Button> */}
+          <a key="deletePop">删除</a>
+        </Popconfirm>,
       ],
     },
   ];
 
   return (
-    <PageContainer>
-      123
+    <PageContainer
+      pageHeaderRender={false}
+      token={{
+        paddingBlockPageContainerContent: 10,
+      }}
+    >
       <ProTable<API.GoodsFromListItem, API.PageParams>
+        toolbar={{
+          title: <h2>厂商管理</h2>,
+          settings: [],
+        }}
         pagination={{
           pageSize: 10,
           current,
-          showQuickJumper: true,
-        }}
-        onDataSourceChange={(data) => {
-          console.log(data);
-          // setCurrent(data.current);
+          onChange: (page) => {
+            setCurrent(page);
+          },
         }}
         actionRef={actionRef}
-        rowKey="key"
+        rowKey={(record) => record.id}
         search={{
           labelWidth: 120,
         }}
@@ -207,7 +194,10 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 添加厂商信息
           </Button>,
         ]}
-        request={getGoodsFrom}
+        request={async (params) => {
+          const res = await getGoodsFrom({ ...params, current, pageSize: 10 });
+          return res;
+        }}
         columns={columns}
         defaultSize="large"
       />
@@ -250,7 +240,47 @@ const TableList: React.FC = () => {
           placeholder="请输入联系地址"
         />
       </ModalForm>
-      <UpdateForm
+      <ModalForm
+        title="修改厂商信息"
+        width="400px"
+        layout="horizontal"
+        open={updateModalOpen}
+        onOpenChange={handleUpdateModalOpen}
+        initialValues={{ ...currentRow }}
+        onFinish={async (value) => {
+          const success = await handleUpdate(currentRow?.id || 1, value as API.GoodsFromListItem);
+          if (success) {
+            handleUpdateModalOpen(false);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
+        }}
+      >
+        <div style={{ marginTop: '20px' }}></div>
+        <ProFormText
+          rules={[{ required: true, message: '请输入厂商姓名' }]}
+          width="md"
+          name="name"
+          label="厂商姓名"
+          placeholder="请输入厂商姓名"
+        />
+        <ProFormText
+          rules={[{ required: true, message: '请输入联系方式' }]}
+          width="md"
+          name="phone"
+          label="联系方式"
+          placeholder="请输入联系方式"
+        />
+        <ProFormText
+          rules={[{ required: true, message: '请输入联系地址' }]}
+          width="md"
+          name="address"
+          label="联系地址"
+          placeholder="请输入联系地址"
+        />
+      </ModalForm>
+      {/* <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
@@ -269,8 +299,7 @@ const TableList: React.FC = () => {
         }}
         updateModalOpen={updateModalOpen}
         values={currentRow || {}}
-      />
-
+      /> */}
       <Drawer
         width={600}
         open={showDetail}

@@ -37,12 +37,11 @@ export async function getGoodsFrom(
 
 /** 更新规则 PUT /api/goods/from */
 export async function updateGoodsFrom(options?: { [key: string]: any }) {
-  return request<GoodsFromListItem>('/api/goods/from', {
-    method: 'POST',
-    data:{
-      method: 'update',
+  return request<GoodsFromListItem>(`/api/goods/from/${options?.id}`, {
+    method: 'PUT',
+    data: {
       ...(options || {}),
-    }
+    },
   });
 }
 
@@ -59,11 +58,10 @@ export async function addGoodsFrom(options?: { [key: string]: any }) {
 
 /** 删除规则 DELETE /api/goods/from */
 export async function removeGoodsFrom(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/goods/from', {
-    method: 'POST',
-    data:{
-      method: 'delete',
+  return request<Record<string, any>>(`/api/goods/from/${options?.id}`, {
+    method: 'DELETE',
+    data: {
       ...(options || {}),
-    }
+    },
   });
 }
