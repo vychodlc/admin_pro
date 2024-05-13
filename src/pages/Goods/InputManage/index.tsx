@@ -1,73 +1,120 @@
+import { addAccount } from '@/services/ant-design-pro/account';
 import { getGoodsFrom } from '@/services/ant-design-pro/goods-from';
-import { addGoodsInput, getGoodsInput } from '@/services/ant-design-pro/goods-input';
+import {
+  addGoodsInput,
+  getGoodsInput,
+  updateGoodsInput,
+} from '@/services/ant-design-pro/goods-input';
 import { addGoodsInputItem } from '@/services/ant-design-pro/goods-input-item';
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  AlipayCircleOutlined,
+  MoneyCollectOutlined,
+  PlusOutlined,
+  WechatOutlined,
+} from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { Button, Tag } from 'antd';
+import { Button, Popover, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import AddPayForm from './components/AddPayForm';
 import CreateForm from './components/CreateForm';
+import DetailDrawer from './components/DetailDrawer';
+
+const getSum = (pay_log: string) => {
+  const pay_log_list = pay_log?.split('\n').filter((item) => item !== '') || [];
+  return pay_log_list.reduce((pre: number, item: string) => {
+    const jsonItem = JSON.parse(item);
+    return Math.floor((pre + parseFloat(jsonItem.amount)) * 100) / 100;
+  }, 0);
+};
 
 const TableList: React.FC = () => {
-  /**
-   * @en-US Pop-up window of new window
-   * @zh-CN 新建窗口的弹窗
-   *  */
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  /**
-   * @en-US The pop-up window of the distribution update window
-   * @zh-CN 分布更新窗口的弹窗
-   * */
-  // const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
+  const [payModalOpen, handlePayModalOpen] = useState<boolean>(false);
 
-  // const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  // const [currentRow, setCurrentRow] = useState<API.GoodsInputListItem>();
+  const [currentRow, setCurrentRow] = useState<API.GoodsInputListItem>();
   const [current, setCurrent] = useState<number>(1);
 
   const columns: ProColumns<API.GoodsInputListItem>[] = [
     {
       title: '来源',
       dataIndex: 'from_name',
-      // render: (dom, entity) => {
-      //   return (
-      //     <a
-      //       onClick={() => {
-      //         setCurrentRow(entity);
-      //         setShowDetail(true);
-      //       }}
-      //     >
-      //       {dom}
-      //     </a>
-      //   );
-      // },
+      align: 'center',
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
       valueType: 'date',
+      align: 'center',
     },
     {
       title: '价值',
       dataIndex: 'cost',
       valueType: 'money',
+      align: 'center',
     },
     {
       title: '支付记录',
+      align: 'center',
       dataIndex: 'pay_log',
       valueType: 'textarea',
+      render: (_, { pay_log }) => {
+        const pay_log_list = pay_log?.split('\n').filter((item) => item !== '') || [];
+        const content = (
+          <div>
+            {pay_log_list.map((item, index) => {
+              const jsonItem = JSON.parse(item);
+              return (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <>
+                    {jsonItem.method === 'alipay' && (
+                      <AlipayCircleOutlined style={{ color: '#226bf3' }} />
+                    )}
+                    {jsonItem.method === 'wechat' && (
+                      <WechatOutlined style={{ color: '#2aae67' }} />
+                    )}
+                    {jsonItem.method === 'cash' && (
+                      <MoneyCollectOutlined style={{ color: '#ff0000' }} />
+                    )}
+                  </>
+                  <span>{jsonItem.amount} 元 </span>
+                  <span>{jsonItem.created_at}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+        return (
+          <Popover content={content} title="交易项">
+            {pay_log_list.map((item, index) => {
+              const jsonItem = JSON.parse(item);
+              return (
+                <Tag icon={<MoneyCollectOutlined />} color="success" key={index}>
+                  {jsonItem.amount}
+                </Tag>
+              );
+            })}
+            {pay_log_list.length === 0 && <Tag>暂无支付记录</Tag>}
+          </Popover>
+        );
+      },
     },
     {
       title: '结余状态',
       dataIndex: 'status',
       key: 'status',
       align: 'center',
-      render: (_, { status }) => {
+      render: (_, { pay_log, cost = 0 }) => {
+        const hasPay = getSum(pay_log || '');
+        const rest = cost - hasPay;
         return (
-          <Tag color={'red'} key={status ? '1' : '0'}>
-            {status ? '已结清' : '未结清'}
-          </Tag>
+          <>
+            {rest > 0 && <Tag color="red">未结清：{rest}</Tag>}
+            {rest <= 0 && <Tag color="success">已结清</Tag>}
+          </>
         );
       },
     },
@@ -75,33 +122,26 @@ const TableList: React.FC = () => {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      // render: (_, record) => [
-      // <a
-      //   key="config"
-      //   onClick={() => {
-      //     setCurrentRow(record);
-      //     handleUpdateModalOpen(true);
-      //   }}
-      // >
-      //   修改
-      // </a>,
-      // <Popconfirm
-      //   key="deletePop"
-      //   title="Delete the task"
-      //   description="Are you sure to delete this task?"
-      //   // onConfirm={async () => {
-      //   //   await handleRemove(record.id);
-      //   //   actionRef.current?.reloadAndRest?.();
-      //   // }}
-      //   onConfirm={() => {
-      //     message.warning('请联系管理员删除');
-      //   }}
-      //   okText="Yes"
-      //   cancelText="No"
-      // >
-      //   <a key="deletePop">删除</a>
-      // </Popconfirm>,
-      // ],
+      render: (_, record) => [
+        <a
+          key="config"
+          onClick={() => {
+            setCurrentRow(record);
+            handlePayModalOpen(true);
+          }}
+        >
+          支付
+        </a>,
+        <a
+          key="config"
+          onClick={() => {
+            setCurrentRow(record);
+            setShowDetail(true);
+          }}
+        >
+          详细
+        </a>,
+      ],
     },
   ];
 
@@ -173,8 +213,6 @@ const TableList: React.FC = () => {
           };
           const { success, data } = await addGoodsInput(submitForm);
           if (success) {
-            console.log(data);
-
             const res = await addGoodsInputItem({
               table: value.table?.map((item: any) => ({
                 ...item,
@@ -197,29 +235,57 @@ const TableList: React.FC = () => {
         createModalOpen={createModalOpen}
         values={{}}
       />
-      {/* <Drawer
-        width={600}
-        open={showDetail}
+      <DetailDrawer
+        currentRow={currentRow}
+        showDetail={showDetail}
+        currentInputId={currentRow?.id || 0}
         onClose={() => {
           setCurrentRow(undefined);
           setShowDetail(false);
         }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.GoodsInputListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.GoodsInputListItem>[]}
-          />
-        )}
-      </Drawer> */}
+      />
+      <AddPayForm
+        payModalOpen={payModalOpen}
+        controlCreateModelVisible={(flag?: boolean) => {
+          handlePayModalOpen(flag || false);
+        }}
+        onFinish={async (values) => {
+          const addItem: {
+            type: string;
+            order_id: number | undefined;
+            method: string;
+            created_at: Date;
+            amount: number;
+            another_id: number | undefined;
+            id?: number;
+          } = {
+            type: 'input_pay',
+            order_id: currentRow?.id,
+            method: values.method,
+            created_at: values.created_at,
+            amount: values.pay,
+            another_id: currentRow?.from_id,
+          };
+          const { success, data } = await addAccount(addItem);
+          if (success) {
+            addItem.id = data?.id;
+            const jsonData = JSON.stringify(addItem);
+            const pay_log_list = currentRow?.pay_log?.split('\n') || [];
+            pay_log_list.push(jsonData);
+            const res = await updateGoodsInput({
+              ...currentRow,
+              pay_log: pay_log_list.join('\n'),
+            });
+            if (res.success) {
+              handlePayModalOpen(false);
+              if (actionRef.current) {
+                actionRef.current.reload();
+              }
+            }
+          }
+        }}
+        values={{}}
+      />
     </PageContainer>
   );
 };

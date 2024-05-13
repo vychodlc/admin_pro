@@ -29,6 +29,7 @@ export async function getGoodsInputItem(
     current?: number;
     /** 页面的容量 */
     pageSize?: number;
+    order_id?: number | string;
   },
   options?: { [key: string]: any },
 ) {

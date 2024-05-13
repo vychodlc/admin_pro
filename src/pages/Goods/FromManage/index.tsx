@@ -141,8 +141,8 @@ const TableList: React.FC = () => {
           onConfirm={() => {
             message.warning('请联系管理员删除');
           }}
-          okText="Yes"
-          cancelText="No"
+          okText="确认"
+          cancelText="取消"
         >
           <a key="deletePop">删除</a>
         </Popconfirm>,
