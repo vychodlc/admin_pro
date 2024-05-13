@@ -111,4 +111,43 @@ declare namespace API {
     total?: number;
     success?: boolean;
   };
+
+  type GoodsInputListItem = {
+    id: number;
+    from_id?: number;
+    from_name?: string;
+    from_phone?: string;
+    from_address?: string;
+    created_at?: Date;
+    cost?: number;
+    pay_log?: string;
+    pay?: number;
+    status?: boolean;
+    log?: string;
+  };
+
+  type GoodsInputList = {
+    data?: GoodsInputListItem[];
+    total?: number;
+    success?: boolean;
+  };
+
+  type GoodsInputItemListItem = {
+    id: number;
+    order_id?: number;
+    length?: number;
+    diameter?: number;
+    unit?: number;
+    price?: number;
+    total?: number;
+    amount?: number;
+    state?: boolean;
+    created_at?: Date;
+  };
+
+  type GoodsInputItemList = {
+    data?: GoodsInputItemListItem[];
+    total?: number;
+    success?: boolean;
+  };
 }

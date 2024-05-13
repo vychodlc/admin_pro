@@ -1,10 +1,4 @@
-import { removeRule } from '@/services/ant-design-pro/api';
-import {
-  addGoodsFrom,
-  getGoodsFrom,
-  updateGoodsFrom,
-  removeGoodsFrom,
-} from '@/services/ant-design-pro/goods-from';
+import { addGoodsFrom, getGoodsFrom, updateGoodsFrom } from '@/services/ant-design-pro/goods-from';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
@@ -16,8 +10,6 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Drawer, Popconfirm, message } from 'antd';
 import React, { useRef, useState } from 'react';
-// import type { FormValueType } from './components/UpdateForm';
-// import UpdateForm from './components/UpdateForm';
 
 /**
  * @en-US Add node
@@ -65,19 +57,19 @@ const handleUpdate = async (id: number, fields: Partial<API.GoodsFromListItem>) 
  *
  * @param id
  */
-const handleRemove = async (id: number) => {
-  const hide = message.loading('正在删除');
-  try {
-    await removeGoodsFrom({ id });
-    hide();
-    message.success('删除成功');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('删除失败，请重新尝试！');
-    return false;
-  }
-};
+// const handleRemove = async (id: number) => {
+//   const hide = message.loading('正在删除');
+//   try {
+//     await removeGoodsFrom({ id });
+//     hide();
+//     message.success('删除成功');
+//     return true;
+//   } catch (error) {
+//     hide();
+//     message.error('删除失败，请重新尝试！');
+//     return false;
+//   }
+// };
 
 const TableList: React.FC = () => {
   /**
@@ -140,19 +132,18 @@ const TableList: React.FC = () => {
         </a>,
         <Popconfirm
           key="deletePop"
-          title="Delete the task"
-          description="Are you sure to delete this task?"
-          onConfirm={async () => {
-            await handleRemove(record.id);
-            actionRef.current?.reloadAndRest?.();
-          }}
-          onCancel={() => {
-            console.log('cancel');
+          title="删除厂商"
+          description="你真的确定要删除这个厂商吗？"
+          // onConfirm={async () => {
+          //   await handleRemove(record.id);
+          //   actionRef.current?.reloadAndRest?.();
+          // }}
+          onConfirm={() => {
+            message.warning('请联系管理员删除');
           }}
           okText="Yes"
           cancelText="No"
         >
-          {/* <Button danger>Delete</Button> */}
           <a key="deletePop">删除</a>
         </Popconfirm>,
       ],
@@ -216,6 +207,7 @@ const TableList: React.FC = () => {
             }
           }
         }}
+        modalProps={{ destroyOnClose: true }}
       >
         <div style={{ marginTop: '20px' }}></div>
         <ProFormText
@@ -256,6 +248,7 @@ const TableList: React.FC = () => {
             }
           }
         }}
+        modalProps={{ destroyOnClose: true }}
       >
         <div style={{ marginTop: '20px' }}></div>
         <ProFormText
@@ -280,26 +273,6 @@ const TableList: React.FC = () => {
           placeholder="请输入联系地址"
         />
       </ModalForm>
-      {/* <UpdateForm
-        onSubmit={async (value) => {
-          const success = await handleUpdate(value);
-          if (success) {
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        onCancel={() => {
-          handleUpdateModalOpen(false);
-          if (!showDetail) {
-            setCurrentRow(undefined);
-          }
-        }}
-        updateModalOpen={updateModalOpen}
-        values={currentRow || {}}
-      /> */}
       <Drawer
         width={600}
         open={showDetail}
