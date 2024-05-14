@@ -1,14 +1,8 @@
 import { addGoodsFrom, getGoodsFrom, updateGoodsFrom } from '@/services/ant-design-pro/goods-from';
 import { PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  PageContainer,
-  ProDescriptions,
-  ProFormText,
-  ProTable,
-} from '@ant-design/pro-components';
-import { Button, Drawer, Popconfirm, message } from 'antd';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ModalForm, ProCard, ProFormText, ProTable } from '@ant-design/pro-components';
+import { Button, Popconfirm, message } from 'antd';
 import React, { useRef, useState } from 'react';
 
 /**
@@ -71,7 +65,7 @@ const handleUpdate = async (id: number, fields: Partial<API.GoodsFromListItem>) 
 //   }
 // };
 
-const TableList: React.FC = () => {
+const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
   /**
    * @en-US Pop-up window of new window
    * @zh-CN 新建窗口的弹窗
@@ -83,8 +77,6 @@ const TableList: React.FC = () => {
    * */
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
-  const [showDetail, setShowDetail] = useState<boolean>(false);
-
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.GoodsFromListItem>();
   const [current, setCurrent] = useState<number>(1);
@@ -93,18 +85,7 @@ const TableList: React.FC = () => {
     {
       title: '厂商姓名',
       dataIndex: 'name',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      valueType: 'textarea',
     },
     {
       title: '联系方式',
@@ -151,15 +132,10 @@ const TableList: React.FC = () => {
   ];
 
   return (
-    <PageContainer
-      pageHeaderRender={false}
-      token={{
-        paddingBlockPageContainerContent: 10,
-      }}
-    >
+    <>
       <ProTable<API.GoodsFromListItem, API.PageParams>
         toolbar={{
-          title: <h2>厂商管理</h2>,
+          title: <h2>{props.tableType === 'goodsFrom' ? '进货' : '卖货'}厂商管理</h2>,
           settings: [],
         }}
         pagination={{
@@ -172,7 +148,12 @@ const TableList: React.FC = () => {
         actionRef={actionRef}
         rowKey={(record) => record.id}
         search={{
-          labelWidth: 120,
+          layout: 'vertical',
+          style: {
+            padding: 0,
+          },
+          size: 'small',
+          span: 8,
         }}
         toolBarRender={() => [
           <Button
@@ -190,7 +171,7 @@ const TableList: React.FC = () => {
           return res;
         }}
         columns={columns}
-        defaultSize="large"
+        defaultSize="small"
       />
       <ModalForm
         title="添加厂商信息"
@@ -273,31 +254,21 @@ const TableList: React.FC = () => {
           placeholder="请输入联系地址"
         />
       </ModalForm>
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.name && (
-          <ProDescriptions<API.GoodsFromListItem>
-            column={2}
-            title={currentRow?.name}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.name,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.GoodsFromListItem>[]}
-          />
-        )}
-      </Drawer>
-    </PageContainer>
+    </>
   );
 };
 
-export default TableList;
+const TwoTable: React.FC = () => {
+  return (
+    <ProCard split="vertical" gutter={30}>
+      <ProCard bodyStyle={{ padding: 0 }} size="small">
+        <TableList tableType="goodsFrom" />
+      </ProCard>
+      <ProCard bodyStyle={{ padding: 0 }} size="small">
+        <TableList tableType="goodsTo" />
+      </ProCard>
+    </ProCard>
+  );
+};
+
+export default TwoTable;

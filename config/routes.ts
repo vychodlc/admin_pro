@@ -53,6 +53,12 @@ export default [
     component: './Goods/OutputManage',
   },
   {
+    path: '/account',
+    name: '交易管理',
+    icon: 'smile',
+    component: './Account',
+  },
+  {
     path: '/',
     redirect: '/dashboard',
   },

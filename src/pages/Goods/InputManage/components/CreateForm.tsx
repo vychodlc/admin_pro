@@ -285,11 +285,6 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             );
           }}
         </ProFormDependency>
-        <ul>
-          {editableKeys.map((item) => {
-            return <>{item}</>;
-          })}
-        </ul>
         <EditableProTable<DataSourceType>
           rowKey="id"
           scroll={{

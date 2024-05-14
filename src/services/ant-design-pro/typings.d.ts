@@ -150,4 +150,20 @@ declare namespace API {
     total?: number;
     success?: boolean;
   };
+
+  type AccountListItem = {
+    id: number;
+    type?: string;
+    order_id?: number;
+    method?: string;
+    created_at?: Date;
+    amount?: number;
+    another_id?: number;
+  };
+
+  type AccountList = {
+    data?: AccountListItem[];
+    total?: number;
+    success?: boolean;
+  };
 }
