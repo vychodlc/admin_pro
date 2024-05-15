@@ -104,6 +104,7 @@ declare namespace API {
     name?: string;
     address?: string;
     phone?: string;
+    type?: string;
   };
 
   type GoodsFromList = {
@@ -147,6 +148,47 @@ declare namespace API {
 
   type GoodsInputItemList = {
     data?: GoodsInputItemListItem[];
+    total?: number;
+    success?: boolean;
+  };
+
+  type GoodsOutputListItem = {
+    id: number;
+    created_at?: Date;
+    to_id?: number;
+    to_name?: string;
+    to_phone?: string;
+    to_address?: string;
+    detail?: string;
+    count?: number;
+    handler_id?: number;
+    handler_name?: string;
+    driver?: string;
+    pay_log?: string;
+    cost?: number;
+    status?: boolean;
+  };
+
+  type GoodsOutputList = {
+    data?: GoodsOutputListItem[];
+    total?: number;
+    success?: boolean;
+  };
+
+  type GoodsOutputItemListItem = {
+    id: number;
+    order_id?: number;
+    length?: number;
+    diameter?: number;
+    unit?: number;
+    price?: number;
+    total?: number;
+    amount?: number;
+    created_at?: Date;
+  };
+
+  type GoodsOutputItemList = {
+    data?: GoodsOutputItemListItem[];
     total?: number;
     success?: boolean;
   };

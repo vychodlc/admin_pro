@@ -7,13 +7,13 @@ type GoodsFromListItem = {
   name?: string;
   address?: string;
   phone?: string;
-}
+};
 
 type GoodsFromList = {
   data?: GoodsFromListItem[];
   total?: number;
   success?: boolean;
-}
+};
 
 /** 获取规则列表 GET /api/goods/from */
 export async function getGoodsFrom(
@@ -23,6 +23,7 @@ export async function getGoodsFrom(
     current?: number;
     /** 页面的容量 */
     pageSize?: number;
+    type?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -49,10 +50,10 @@ export async function updateGoodsFrom(options?: { [key: string]: any }) {
 export async function addGoodsFrom(options?: { [key: string]: any }) {
   return request<GoodsFromListItem>('/api/goods/from', {
     method: 'POST',
-    data:{
+    data: {
       method: 'post',
       ...(options || {}),
-    }
+    },
   });
 }
 

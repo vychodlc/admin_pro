@@ -1,7 +1,13 @@
 import { addGoodsFrom, getGoodsFrom, updateGoodsFrom } from '@/services/ant-design-pro/goods-from';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm, ProCard, ProFormText, ProTable } from '@ant-design/pro-components';
+import {
+  ModalForm,
+  PageContainer,
+  ProCard,
+  ProFormText,
+  ProTable,
+} from '@ant-design/pro-components';
 import { Button, Popconfirm, message } from 'antd';
 import React, { useRef, useState } from 'react';
 
@@ -149,11 +155,16 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
         rowKey={(record) => record.id}
         search={{
           layout: 'vertical',
-          style: {
-            padding: 0,
-          },
+          labelWidth: 'auto',
+          searchGutter: 10,
+          span: 4,
+        }}
+        form={{
           size: 'small',
-          span: 8,
+          style: {
+            paddingTop: 10,
+            paddingBottom: 0,
+          },
         }}
         toolBarRender={() => [
           <Button
@@ -167,7 +178,12 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
           </Button>,
         ]}
         request={async (params) => {
-          const res = await getGoodsFrom({ ...params, current, pageSize: 10 });
+          const res = await getGoodsFrom({
+            ...params,
+            current,
+            pageSize: 10,
+            type: props.tableType === 'goodsFrom' ? 'come' : 'go',
+          });
           return res;
         }}
         columns={columns}
@@ -180,6 +196,7 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
+          value.type = props.tableType === 'goodsFrom' ? 'come' : 'go';
           const success = await handleAdd(value as API.GoodsFromListItem);
           if (success) {
             handleModalOpen(false);
@@ -260,14 +277,21 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
 
 const TwoTable: React.FC = () => {
   return (
-    <ProCard split="vertical" gutter={30}>
-      <ProCard bodyStyle={{ padding: 0 }} size="small">
-        <TableList tableType="goodsFrom" />
+    <PageContainer
+      pageHeaderRender={false}
+      token={{
+        paddingBlockPageContainerContent: 10,
+      }}
+    >
+      <ProCard split="vertical" gutter={30} bodyStyle={{ padding: 0 }} headStyle={{ padding: 0 }}>
+        <ProCard bodyStyle={{ padding: 0 }} size="small">
+          <TableList tableType="goodsFrom" />
+        </ProCard>
+        <ProCard bodyStyle={{ padding: 0 }} size="small">
+          <TableList tableType="goodsTo" />
+        </ProCard>
       </ProCard>
-      <ProCard bodyStyle={{ padding: 0 }} size="small">
-        <TableList tableType="goodsTo" />
-      </ProCard>
-    </ProCard>
+    </PageContainer>
   );
 };
 

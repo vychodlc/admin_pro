@@ -38,11 +38,19 @@ const TableList: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<API.GoodsInputListItem>();
   const [current, setCurrent] = useState<number>(1);
 
+  const [goodsFromList, setGoodsFromList] = useState<any[]>([]);
   const columns: ProColumns<API.GoodsInputListItem>[] = [
     {
       title: '来源',
       dataIndex: 'from_name',
       align: 'center',
+      valueType: 'select',
+      valueEnum: goodsFromList.reduce((pre, item) => {
+        return {
+          ...pre,
+          [item.name]: { text: item.name },
+        };
+      }, {}),
     },
     {
       title: '创建时间',
@@ -101,6 +109,7 @@ const TableList: React.FC = () => {
           </Popover>
         );
       },
+      search: false,
     },
     {
       title: '结余状态',
@@ -117,35 +126,45 @@ const TableList: React.FC = () => {
           </>
         );
       },
+      valueType: 'select',
+      valueEnum: {
+        0: { text: '未结清' },
+        1: { text: '已结清' },
+      },
     },
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            setCurrentRow(record);
-            handlePayModalOpen(true);
-          }}
-        >
-          支付
-        </a>,
-        <a
-          key="config"
-          onClick={() => {
-            setCurrentRow(record);
-            setShowDetail(true);
-          }}
-        >
-          详细
-        </a>,
-      ],
+      render: (_, record) => {
+        const optList = [
+          <a
+            key="config"
+            onClick={() => {
+              setCurrentRow(record);
+              setShowDetail(true);
+            }}
+          >
+            详细
+          </a>,
+        ];
+        if (record.status === false) {
+          optList.push(
+            <a
+              key="config"
+              onClick={() => {
+                setCurrentRow(record);
+                handlePayModalOpen(true);
+              }}
+            >
+              支付
+            </a>,
+          );
+        }
+        return optList;
+      },
     },
   ];
-
-  const [goodsFromList, setGoodsFromList] = useState<any[]>([]);
 
   useEffect(() => {
     getGoodsFrom({}).then((res) => {
@@ -175,7 +194,16 @@ const TableList: React.FC = () => {
         actionRef={actionRef}
         rowKey={(record) => record.id}
         search={{
-          labelWidth: 120,
+          labelWidth: 'auto',
+          searchGutter: 10,
+          span: 4,
+        }}
+        form={{
+          size: 'small',
+          style: {
+            paddingTop: 10,
+            paddingBottom: 10,
+          },
         }}
         toolBarRender={() => [
           <Button
@@ -184,6 +212,7 @@ const TableList: React.FC = () => {
             onClick={() => {
               handleModalOpen(true);
             }}
+            size="middle"
           >
             <PlusOutlined /> 添加进货订单信息
           </Button>,
@@ -193,7 +222,7 @@ const TableList: React.FC = () => {
           return res;
         }}
         columns={columns}
-        defaultSize="large"
+        defaultSize="small"
       />
       <CreateForm
         onFinish={async (value) => {
@@ -272,9 +301,12 @@ const TableList: React.FC = () => {
             const jsonData = JSON.stringify(addItem);
             const pay_log_list = currentRow?.pay_log?.split('\n') || [];
             pay_log_list.push(jsonData);
+            const is_pay_over =
+              getSum(pay_log_list.join('\n')) === parseFloat('' + currentRow?.cost || '0');
             const res = await updateGoodsInput({
               ...currentRow,
               pay_log: pay_log_list.join('\n'),
+              status: is_pay_over ? true : false,
             });
             if (res.success) {
               handlePayModalOpen(false);

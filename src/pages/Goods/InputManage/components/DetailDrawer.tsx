@@ -74,7 +74,7 @@ export default (props: DetailDrawerProps) => {
                     text={row.state ? '已烘干' : '未烘干'}
                     color={row.state ? 'volcano' : ''}
                   >
-                    <Card style={{ paddingRight: 30 }}>
+                    <Card style={{ paddingRight: 30 }} size="small">
                       <h2>{row.total} 元</h2>
                       <div style={{ marginTop: 10 }} />
                       直径：

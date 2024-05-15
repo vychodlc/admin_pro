@@ -9,7 +9,7 @@ import {
   ProFormDependency,
   ProFormInstance,
   ProFormSelect,
-  ProFormSwitch,
+  ProFormText,
 } from '@ant-design/pro-components';
 import { Statistic } from 'antd';
 import moment from 'moment';
@@ -27,21 +27,23 @@ type DataSourceType = {
 
 export type FormValueType = {
   created_at?: string;
-  from_id?: string;
-  from_name?: string;
-  from_phone?: string;
-  from_address?: string;
-  state?: boolean;
+  to_id?: string;
+  to_name?: string;
+  to_phone?: string;
+  to_address?: string;
+  handler_id?: number;
+  driver_name?: string;
+  driver_phone?: string;
+  driver_car_number?: string;
   table?: DataSourceType[];
 };
 
 const defaultValues: FormValueType = {
   created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
-  from_id: '',
-  from_name: '',
-  from_phone: '',
-  from_address: '',
-  state: false,
+  to_id: '',
+  to_name: '',
+  to_phone: '',
+  to_address: '',
   table: [],
 };
 
@@ -54,7 +56,7 @@ export type CreateFormProps = {
 
 const CreateForm: React.FC<CreateFormProps> = (props) => {
   const [editableKeys, setEditableRowKeys] = useState<React.Key[]>(() => []);
-  const [goodsFromList, setGoodsFromList] = useState<any[]>([]);
+  const [goodsToList, setGoodsToList] = useState<any[]>([]);
   const actionRef = useRef<ActionType>();
   const formRef = useRef<ProFormInstance>();
   const editableFormRef = useRef<EditableFormInstance>();
@@ -75,11 +77,11 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
 
   const EditableProTableValidator = async (_: any, value: DataSourceType[]) => {
     if (!value || value.length < 1) {
-      throw new Error('请至少添加一个竹条');
+      throw new Error('请至少添加一种筷子');
     } else {
       value.forEach((valueItem: DataSourceType) => {
         if (!valueItem.length || !valueItem.diameter || !valueItem.unit || !valueItem.price) {
-          throw new Error('请填写完整的竹条信息');
+          throw new Error('请填写完整的筷子信息');
         }
       });
     }
@@ -108,23 +110,28 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
       dataIndex: 'length',
       valueType: 'select',
       width: '13%',
-      initialValue: 185,
+      initialValue: 19.5,
       fieldProps: {
-        options: [{ value: 185, label: '185' }],
+        options: [
+          { value: 19.5, label: '19.5' },
+          { value: 22.5, label: '22.5' },
+        ],
       },
     },
     {
-      title: '根数/每捆',
+      title: '双数/每袋',
       key: 'unit',
       dataIndex: 'unit',
       valueType: 'select',
       width: '13%',
-      initialValue: 300,
+      initialValue: 8000,
       fieldProps: (_, { rowIndex }) => {
         return {
           options: [
-            { value: 300, label: '300' },
-            { value: 400, label: '400' },
+            { value: 8000, label: '8000' },
+            { value: 5500, label: '5500' },
+            { value: 5000, label: '5000' },
+            { value: 4300, label: '4300' },
           ],
           onSelect: () => {
             calculateTotal(rowIndex);
@@ -198,15 +205,15 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
   ];
 
   useEffect(() => {
-    getGoodsFrom({}).then((res) => {
-      setGoodsFromList(res.data || []);
+    getGoodsFrom({ type: 'go' }).then((res) => {
+      setGoodsToList(res.data || []);
     });
   }, []);
   return (
     <>
       <ModalForm<{ table: DataSourceType[] }>
-        title="新建进货订单"
-        width="80vw"
+        title="新建发货订单"
+        width="70vw"
         layout="horizontal"
         open={props.createModalOpen}
         formRef={formRef}
@@ -222,6 +229,9 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
             const cost = table?.reduce((pre: number, item: DataSourceType) => {
               return (pre || 0) + (item.price || 0) * (item.amount || 0) * (item.unit || 0);
             }, 0);
+            const count = table?.reduce((pre: number, item: DataSourceType) => {
+              return (pre || 0) + (item.amount || 0);
+            }, 0);
             return (
               <div
                 style={{
@@ -231,7 +241,7 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
                   paddingBlockEnd: 16,
                 }}
               >
-                <div style={{ flex: 2 }}>
+                <div style={{ width: '15vw' }}>
                   <ProFormDatePicker
                     rules={[{ required: true, message: '请选择创建时间' }]}
                     width="md"
@@ -240,46 +250,82 @@ const CreateForm: React.FC<CreateFormProps> = (props) => {
                     placeholder="请选择创建时间"
                   />
                   <ProFormSelect
-                    rules={[{ required: true, message: '请选择厂商姓名' }]}
+                    rules={[{ required: true, message: '请选择买家姓名' }]}
                     width="md"
-                    name="from_id"
-                    label="厂商姓名"
-                    placeholder="请选择厂商姓名"
-                    options={goodsFromList.map((item) => ({ label: item.name, value: item.id }))}
+                    name="to_id"
+                    label="买家姓名"
+                    placeholder="请选择买家姓名"
+                    options={goodsToList.map((item) => ({ label: item.name, value: item.id }))}
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <ProFormSwitch
-                    rules={[{ required: true, message: '请选择烘干状态' }]}
-                    name="state"
-                    label="已经烘干"
+                <div style={{ width: '15vw' }}>
+                  <ProFormSelect
+                    rules={[{ required: true, message: '请选择上货人' }]}
+                    width="md"
+                    name="handler_id"
+                    label="上货人"
+                    placeholder="请选择上货人"
+                    options={[{ name: '朱兵', id: 1 }].map((item) => ({
+                      label: item.name,
+                      value: item.id,
+                    }))}
+                  />
+                  <ProFormText
+                    rules={[{ required: true, message: '请输入司机姓名' }]}
+                    width="md"
+                    name="driver_name"
+                    label="司机姓名"
+                    placeholder="请输入司机姓名"
                   />
                 </div>
-                <div style={{ flex: 1 }}></div>
+                <div style={{ width: '15vw' }}>
+                  <ProFormText
+                    rules={[{ required: true, message: '请输入司机电话' }]}
+                    width="md"
+                    name="driver_phone"
+                    label="司机电话"
+                    placeholder="请输入司机电话"
+                  />
+                  <ProFormText
+                    rules={[{ required: true, message: '请输入车牌号码' }]}
+                    width="md"
+                    name="driver_car_number"
+                    label="车牌号码"
+                    placeholder="请输入车牌号码"
+                  />
+                </div>
                 <div
                   style={{
-                    flex: 1,
+                    width: '20vw',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    justifyContent: 'space-around',
                   }}
                 >
-                  <div>
-                    {
-                      <Statistic
-                        style={{
-                          textAlign: 'center',
-                          backgroundColor: '#52c41a',
-                          padding: 16,
-                          borderRadius: 8,
-                        }}
-                        title={<span style={{ color: '#fff' }}>总花费 (元)</span>}
-                        value={cost === 0 ? 0 : cost?.toFixed(2)}
-                        precision={2}
-                        valueStyle={{ color: '#fff' }}
-                      />
-                    }
-                  </div>
+                  <Statistic
+                    style={{
+                      textAlign: 'center',
+                      backgroundColor: '#52c41a',
+                      padding: 16,
+                      borderRadius: 8,
+                      width: '8vw',
+                    }}
+                    title={<span style={{ color: '#fff' }}>总价值 (元)</span>}
+                    value={cost === 0 ? 0 : cost?.toFixed(2)}
+                    precision={2}
+                    valueStyle={{ color: '#fff' }}
+                  />
+                  <Statistic
+                    style={{
+                      textAlign: 'center',
+                      backgroundColor: '#52c41a',
+                      padding: 16,
+                      borderRadius: 8,
+                      width: '8vw',
+                    }}
+                    title={<span style={{ color: '#fff' }}>总件数</span>}
+                    value={count}
+                    valueStyle={{ color: '#fff' }}
+                  />
                 </div>
               </div>
             );

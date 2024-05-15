@@ -2,29 +2,9 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-type GoodsInputListItem = {
-  id: number;
-  from_id?: number;
-  from_name?: string;
-  from_phone?: string;
-  from_address?: string;
-  created_at?: Date;
-  cost?: number;
-  pay_log?: string;
-  pay?: number;
-  status?: boolean;
-  log?: string;
-};
-
 type addGoodsInputType = {
   success?: boolean;
-  data?: GoodsInputListItem;
-};
-
-type GoodsInputList = {
-  data?: GoodsInputListItem[];
-  total?: number;
-  success?: boolean;
+  data?: API.GoodsInputListItem;
 };
 
 /** 获取规则列表 GET /api/goods/input */
@@ -38,7 +18,7 @@ export async function getGoodsInput(
   },
   options?: { [key: string]: any },
 ) {
-  return request<GoodsInputList>('/api/goods/input', {
+  return request<API.GoodsInputList>('/api/goods/input', {
     method: 'GET',
     params: {
       ...params,
@@ -49,6 +29,8 @@ export async function getGoodsInput(
 
 /** 更新规则 PUT /api/goods/input */
 export async function updateGoodsInput(options?: { [key: string]: any }) {
+  console.log('options', options);
+
   return request<addGoodsInputType>(`/api/goods/input/${options?.id}`, {
     method: 'PUT',
     data: {

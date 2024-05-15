@@ -2,25 +2,6 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-type GoodsInputItemListItem = {
-  id: number;
-  order_id?: number;
-  length?: number;
-  diameter?: number;
-  unit?: number;
-  price?: number;
-  total?: number;
-  amount?: number;
-  state?: boolean;
-  created_at?: Date;
-};
-
-type GoodsInputItemList = {
-  data?: GoodsInputItemListItem[];
-  total?: number;
-  success?: boolean;
-};
-
 /** 获取规则列表 GET /api/goods/input/item */
 export async function getGoodsInputItem(
   params: {
@@ -33,7 +14,7 @@ export async function getGoodsInputItem(
   },
   options?: { [key: string]: any },
 ) {
-  return request<GoodsInputItemList>('/api/goods/input/item', {
+  return request<API.GoodsInputItemList>('/api/goods/input/item', {
     method: 'GET',
     params: {
       ...params,
@@ -44,7 +25,7 @@ export async function getGoodsInputItem(
 
 /** 更新规则 PUT /api/goods/input/item */
 export async function updateGoodsInputItem(options?: { [key: string]: any }) {
-  return request<GoodsInputItemList>(`/api/goods/input/item/${options?.id}`, {
+  return request<API.GoodsInputItemList>(`/api/goods/input/item/${options?.id}`, {
     method: 'PUT',
     data: {
       ...(options || {}),
@@ -54,7 +35,7 @@ export async function updateGoodsInputItem(options?: { [key: string]: any }) {
 
 /** 新建规则 POST /api/goods/input/item */
 export async function addGoodsInputItem(options?: { [key: string]: any }) {
-  return request<GoodsInputItemList>('/api/goods/input/item', {
+  return request<API.GoodsInputItemList>('/api/goods/input/item', {
     method: 'POST',
     data: {
       method: 'post',
