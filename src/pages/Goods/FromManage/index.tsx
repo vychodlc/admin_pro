@@ -195,7 +195,7 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
         layout="horizontal"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
+        onFinish={async (value: any) => {
           value.type = props.tableType === 'goodsFrom' ? 'come' : 'go';
           const success = await handleAdd(value as API.GoodsFromListItem);
           if (success) {
@@ -237,7 +237,7 @@ const TableList = (props: { tableType: 'goodsFrom' | 'goodsTo' }) => {
         open={updateModalOpen}
         onOpenChange={handleUpdateModalOpen}
         initialValues={{ ...currentRow }}
-        onFinish={async (value) => {
+        onFinish={async (value: any) => {
           const success = await handleUpdate(currentRow?.id || 1, value as API.GoodsFromListItem);
           if (success) {
             handleUpdateModalOpen(false);
